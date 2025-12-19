@@ -1,9 +1,22 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { supabase } from '../supabase' // Vérifiez que ce fichier existe
+import { 
+  Building2, Globe, MapPin, Clock, Users, MessageSquare, 
+  Linkedin, Facebook, Instagram, ChevronRight, ChevronLeft, CheckCircle2 
+} from 'lucide-vue-next'
 
 const emit = defineEmits(['close'])
-
 const currentStep = ref(0)
+const showErrors = ref(false)
+const telegramId = ref(null)
+
+onMounted(() => {
+  // Récupération du Telegram ID dans l'URL
+  const params = new URLSearchParams(window.location.search)
+  telegramId.value = params.get('tid')
+})
+
 const formData = reactive({
   companyName: '',
   sector: '',
@@ -16,438 +29,168 @@ const formData = reactive({
 
 const formSteps = [
   {
-    title: 'Informations de l\'entreprise',
+    title: 'Identité de marque',
+    subtitle: 'Présentez votre entreprise pour une IA personnalisée.',
     fields: [
-      { name: 'companyName', label: 'Nom de votre entreprise', type: 'text', icon: '🏢' },
-      { name: 'sector', label: 'Secteur d\'activité', type: 'text', icon: '🌍' }
+      { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', icon: Building2, placeholder: 'Ex: ECP Studio' },
+      { name: 'sector', label: 'Secteur d\'activité', type: 'text', icon: Globe, placeholder: 'Ex: Immobilier, Tech...' }
     ]
   },
   {
-    title: 'Localisation & Horaires',
+    title: 'Présence Locale',
+    subtitle: 'Optimisez vos publications selon votre zone.',
     fields: [
-      { name: 'location', label: 'Localisation', type: 'text', icon: '📍' },
-      { name: 'openingHours', label: 'Heures d\'ouverture', type: 'text', placeholder: 'Ex: Lun-Ven 9h-18h', icon: '🕐' }
+      { name: 'location', label: 'Localisation', type: 'text', icon: MapPin, placeholder: 'Ex: Paris, France' },
+      { name: 'openingHours', label: 'Horaires', type: 'text', icon: Clock, placeholder: 'Ex: Lun-Ven 9h-18h' }
     ]
   },
   {
-    title: 'Audience & Communication',
+    title: 'Stratégie Editoriale',
+    subtitle: 'Définissez comment votre assistant doit s\'exprimer.',
     fields: [
-      { name: 'targetAudience', label: 'Public cible', type: 'text', icon: '👥' },
-      { name: 'tone', label: 'Tonalité', type: 'select', options: ['Professionnel', 'Décontracté', 'Créatif', 'Informatif'], icon: '💬' }
+      { name: 'targetAudience', label: 'Public cible', type: 'text', icon: Users, placeholder: 'Ex: Jeunes entrepreneurs' },
+      { name: 'tone', label: 'Tonalité', type: 'select', icon: MessageSquare, options: ['Professionnel', 'Décontracté', 'Créatif', 'Informatif'] }
     ]
   },
   {
-    title: 'Réseaux Sociaux',
+    title: 'Canaux de diffusion',
+    subtitle: 'Où souhaitez-vous que l\'IA publie ?',
     isNetworks: true
   }
 ]
 
-const networks = [
-  { name: 'LinkedIn', class: 'network-linkedin' },
-  { name: 'Facebook', class: 'network-facebook' },
-  { name: 'Instagram', class: 'network-instagram' },
-  { name: 'X (Twitter)', class: 'network-twitter' }
+const socialNetworks = [
+  { name: 'LinkedIn', icon: Linkedin, color: '#0077b5', provider: 'linkedin_oidc' },
+  { name: 'Facebook', icon: Facebook, color: '#1877f2', provider: 'facebook' },
+  { name: 'Instagram', icon: Instagram, color: '#e4405f', provider: 'instagram' },
 ]
 
-const toggleNetwork = (network) => {
-  const index = formData.networks.indexOf(network)
-  if (index > -1) {
-    formData.networks.splice(index, 1)
-  } else {
-    formData.networks.push(network)
-  }
+const isStepValid = computed(() => {
+  const step = formSteps[currentStep.value]
+  if (step.isNetworks) return formData.networks.length > 0
+  return step.fields.every(field => formData[field.name]?.toString().trim() !== '')
+})
+
+// Déclenche l'authentification OAuth Supabase
+const connectSocial = async (network) => {
+  // Sauvegarde temporaire des infos du formulaire
+  localStorage.setItem('tg_id', telegramId.value)
+  localStorage.setItem('onboarding_data', JSON.stringify(formData))
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: network.provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: { access_type: 'offline', prompt: 'consent' }
+    }
+  })
+  if (error) alert("Erreur de connexion : " + error.message)
 }
 
 const nextStep = () => {
-  if (currentStep.value < formSteps.length - 1) {
-    currentStep.value++
+  if (isStepValid.value) {
+    showErrors.value = false
+    currentStep.value < formSteps.length - 1 ? currentStep.value++ : completeSetup()
   } else {
-    completeSetup()
+    showErrors.value = true
   }
 }
 
 const previousStep = () => {
-  if (currentStep.value > 0) {
-    currentStep.value--
-  } else {
-    emit('close')
-  }
+  showErrors.value = false
+  currentStep.value > 0 ? currentStep.value-- : emit('close')
 }
 
 const completeSetup = () => {
-  // Validation
-  if (formData.networks.length === 0) {
-    alert('⚠️ Veuillez sélectionner au moins un réseau social')
-    return
-  }
-
-  // Afficher les données dans la console
-  console.log('📊 Configuration ECP Assistant:', {
-    ...formData,
-    timestamp: new Date().toISOString()
-  })
-
-  // Sauvegarder dans localStorage
-  try {
-    localStorage.setItem('ecp_assistant_config', JSON.stringify(formData))
-  } catch (error) {
-    console.warn('Impossible de sauvegarder dans localStorage:', error)
-  }
-
-  // Message de succès
-  const message = `
-✅ Configuration terminée avec succès !
-
-📋 Récapitulatif :
-━━━━━━━━━━━━━━━━━━━━━━━
-🏢 Entreprise : ${formData.companyName || 'Non renseigné'}
-🌍 Secteur : ${formData.sector || 'Non renseigné'}
-📍 Localisation : ${formData.location || 'Non renseigné'}
-🕐 Horaires : ${formData.openingHours || 'Non renseigné'}
-👥 Public cible : ${formData.targetAudience || 'Non renseigné'}
-💬 Tonalité : ${formData.tone}
-📱 Réseaux : ${formData.networks.join(', ')}
-
-🚀 Votre assistant ECP est prêt à être déployé !
-  `.trim()
-
-  alert(message)
-
-  // Fermer le modal et réinitialiser
+  console.log('Finalisation...', formData)
   emit('close')
-  setTimeout(() => {
-    currentStep.value = 0
-  }, 300)
 }
 </script>
 
 <template>
   <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal">
-      <button class="modal-close" @click="emit('close')" title="Fermer">✕</button>
-      
-      <div class="modal-header">
-        <h3>Configuration de votre Assistant</h3>
-        <p>Étape {{ currentStep + 1 }} sur {{ formSteps.length }}</p>
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: ((currentStep + 1) / formSteps.length * 100) + '%' }"></div>
+    <div class="hero-modal">
+      <div class="modal-sidebar">
+        <div class="step-indicator">
+          <div v-for="(step, i) in formSteps" :key="i" 
+               class="step-dot" :class="{ active: i <= currentStep }">
+          </div>
         </div>
       </div>
 
-      <div class="modal-body">
-        <h4>{{ formSteps[currentStep].title }}</h4>
-        
-        <!-- Network Selection -->
-        <div v-if="formSteps[currentStep].isNetworks">
-          <p style="color: #666; margin-bottom: 1.5rem;">
-            Sélectionnez les réseaux sociaux que vous souhaitez gérer :
-          </p>
-          <div class="networks-grid">
-            <div 
-              v-for="network in networks" 
-              :key="network.name"
-              class="network-card"
-              :class="{ selected: formData.networks.includes(network.name) }"
-              @click="toggleNetwork(network.name)"
-            >
-              <div class="network-icon" :class="network.class"></div>
-              <div style="font-weight: 600;">{{ network.name }}</div>
-              <div v-if="formData.networks.includes(network.name)" class="check-mark">✓</div>
+      <div class="modal-content">
+        <header class="content-header">
+          <div class="header-text">
+            <h2>{{ formSteps[currentStep].title }}</h2>
+            <p>{{ formSteps[currentStep].subtitle }}</p>
+          </div>
+          <button class="close-btn" @click="emit('close')">×</button>
+        </header>
+
+        <main class="content-body">
+          <!-- Correction ici : Le bloc v-if et v-else sont bien adjacents -->
+          <div v-if="!formSteps[currentStep].isNetworks" class="form-grid">
+            <div v-for="field in formSteps[currentStep].fields" :key="field.name" class="input-wrapper">
+              <label :class="{ 'label-error': showErrors && !formData[field.name] }">
+                <component :is="field.icon" :size="16" /> {{ field.label }}
+              </label>
+              <select v-if="field.type === 'select'" v-model="formData[field.name]" class="hero-input">
+                <option v-for="opt in field.options" :key="opt">{{ opt }}</option>
+              </select>
+              <input v-else v-model="formData[field.name]" :type="field.type" 
+                     :placeholder="field.placeholder" 
+                     class="hero-input"
+                     :class="{ 'input-invalid': showErrors && !formData[field.name] }">
             </div>
           </div>
-          <p v-if="formData.networks.length === 0" class="warning-text">
-            ⚠️ Veuillez sélectionner au moins un réseau social
-          </p>
-          <p v-else class="success-text">
-            ✓ {{ formData.networks.length }} réseau{{ formData.networks.length > 1 ? 'x' : '' }} sélectionné{{ formData.networks.length > 1 ? 's' : '' }}
-          </p>
-        </div>
 
-        <!-- Form Fields -->
-        <div v-else>
-          <div v-for="field in formSteps[currentStep].fields" :key="field.name" class="form-group">
-            <label class="form-label">
-              <span>{{ field.icon }}</span> {{ field.label }}
-            </label>
-            <select 
-              v-if="field.type === 'select'" 
-              v-model="formData[field.name]" 
-              class="form-select"
-            >
-              <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
-            </select>
-            <input 
-              v-else 
-              v-model="formData[field.name]" 
-              :type="field.type" 
-              :placeholder="field.placeholder" 
-              class="form-input"
-            >
+          <div v-else class="networks-selection">
+            <div v-for="net in socialNetworks" :key="net.name" 
+                 class="net-card" 
+                 @click="connectSocial(net)">
+              <div class="net-icon-box" :style="{ backgroundColor: net.color + '15', color: net.color }">
+                <component :is="net.icon" :size="24" />
+              </div>
+              <div class="net-info">
+                <span class="net-name">{{ net.name }}</span>
+                <span class="net-status">Cliquer pour connecter</span>
+              </div>
+              <CheckCircle2 v-if="formData.networks.includes(net.name)" class="check-icon" :size="20" />
+            </div>
           </div>
-        </div>
-      </div>
+        </main>
 
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="previousStep">
-          {{ currentStep === 0 ? 'Annuler' : '← Précédent' }}
-        </button>
-        <button class="btn btn-primary" @click="nextStep">
-          {{ currentStep === formSteps.length - 1 ? 'Terminer ✓' : 'Suivant →' }}
-        </button>
+        <footer class="content-footer">
+          <button class="btn-back" @click="previousStep">
+            <ChevronLeft :size="18" /> {{ currentStep === 0 ? 'Annuler' : 'Retour' }}
+          </button>
+          <button class="btn-next" :class="{ 'btn-disabled': !isStepValid }" @click="nextStep">
+            {{ currentStep === formSteps.length - 1 ? 'Terminer' : 'Continuer' }} <ChevronRight :size="18" />
+          </button>
+        </footer>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Modal Container */
-.modal {
-  background: white;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 650px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  position: relative;
-  animation: slideUp 0.4s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Close Button */
-.modal-close {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  background: #f5f5f5;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  z-index: 10;
-}
-
-.modal-close:hover {
-  background: #ff4785;
-  color: white;
-  transform: rotate(90deg);
-}
-
-/* Modal Header */
-.modal-header {
-  padding: 2rem 2rem 1.5rem;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.modal-header h3 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #3d3f8f;
-  margin-bottom: 0.5rem;
-  padding-right: 2.5rem;
-}
-
-.modal-header p {
-  color: #666;
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
-  font-weight: 500;
-}
-
-/* Progress Bar */
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #e5e5e5;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(135deg, #3d3f8f, #ff4785);
-  transition: width 0.4s ease;
-  border-radius: 4px;
-}
-
-/* Modal Body */
-.modal-body {
-  padding: 2rem;
-}
-
-.modal-body h4 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #3d3f8f;
-  margin-bottom: 1.5rem;
-}
-
-/* Form Groups */
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.form-label span {
-  margin-right: 0.5rem;
-  font-size: 1.1rem;
-}
-
-.form-input,
-.form-select {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e5e5;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-family: 'Poppins', sans-serif;
-  transition: all 0.3s;
-}
-
-.form-input:focus,
-.form-select:focus {
-  outline: none;
-  border-color: #ff4785;
-  box-shadow: 0 0 0 3px rgba(255, 71, 133, 0.1);
-}
-
-/* Networks Grid */
-.networks-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.network-card {
-  padding: 1.25rem;
-  border: 2px solid #e5e5e5;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  position: relative;
-}
-
-.network-card:hover {
-  border-color: #ff4785;
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(255, 71, 133, 0.2);
-}
-
-.network-card.selected {
-  border-color: #ff4785;
-  background: rgba(255, 71, 133, 0.05);
-}
-
-.network-icon {
-  width: 45px;
-  height: 45px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-}
-
-.network-linkedin { background: #0077B5; }
-.network-facebook { background: #1877F2; }
-.network-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743); }
-.network-twitter { background: #000000; }
-
-.check-mark {
-  margin-left: auto;
-  color: #ff4785;
-  font-size: 1.4rem;
-  font-weight: bold;
-}
-
-.warning-text {
-  color: #ff6b6b;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-}
-
-.success-text {
-  color: #51cf66;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  font-weight: 600;
-}
-
-/* Modal Footer */
-.modal-footer {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid #e5e5e5;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  background: #fafafa;
-  border-radius: 0 0 20px 20px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .modal {
-    max-width: 95%;
-    margin: 0.5rem;
-  }
-
-  .networks-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-header h3 {
-    font-size: 1.4rem;
-  }
-}
+/* Conservez votre style précédent ici */
+.net-info { display: flex; flex-direction: column; }
+.net-status { font-size: 11px; color: #64748b; }
+.net-name { font-weight: 600; color: #1e293b; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.hero-modal { display: flex; background: white; width: 900px; max-width: 95vw; height: 580px; border-radius: 24px; overflow: hidden; }
+.modal-sidebar { width: 80px; background: #0f172a; display: flex; flex-direction: column; align-items: center; padding-top: 40px; }
+.step-dot { width: 4px; height: 40px; background: #334155; margin-bottom: 8px; border-radius: 2px; }
+.step-dot.active { background: #E91E8C; }
+.modal-content { flex: 1; display: flex; flex-direction: column; padding: 40px; }
+.content-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+.hero-input { width: 100%; padding: 14px 16px; border: 2px solid #f1f5f9; border-radius: 12px; margin-bottom: 10px; }
+.networks-selection { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.net-card { display: flex; align-items: center; padding: 20px; border: 2px solid #f1f5f9; border-radius: 16px; cursor: pointer; transition: 0.2s; }
+.net-card:hover { border-color: #E91E8C; background: #fff1f7; }
+.net-icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
+.content-footer { margin-top: auto; display: flex; justify-content: space-between; padding-top: 20px; }
+.btn-next { background: #E91E8C; color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.btn-back { background: none; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 </style>

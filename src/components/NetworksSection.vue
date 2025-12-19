@@ -1,56 +1,65 @@
 <script setup>
+import { Linkedin, Instagram, Facebook, Sparkles, ArrowRight } from 'lucide-vue-next'
+
 const networks = [
-  { name: 'LinkedIn', color: '#0077B5', icon: 'in' },
-  { name: 'Instagram', color: '#E4405F', icon: '📷' },
-  { name: 'Facebook', color: '#1877F2', icon: 'f' },
+  { name: 'LinkedIn', color: '#0077B5', icon: Linkedin },
+  { name: 'Instagram', color: '#E4405F', icon: Instagram },
+  { name: 'Facebook', color: '#1877F2', icon: Facebook },
 ]
 </script>
 
 <template>
   <section class="networks-section">
-    <div class="container">
+    <div class="layout-container networks-container">
+      <!-- TEXTE -->
       <div class="content">
+        <div class="badge">Multi-Canal</div>
+
         <h2>
-          Gérez l'ensemble de <br>
-          vos réseaux sociaux <br>
+          Gérez l'ensemble de <br />
+          vos réseaux sociaux <br />
           grâce à <span class="highlight">un seul outil !</span>
         </h2>
+
         <p>
           De LinkedIn à Instagram en passant par Facebook,
-          notre assistant vous permet de communiquer rapidement avec vos différentes communautés
+          notre assistant vous permet de communiquer rapidement
+          avec vos différentes communautés.
         </p>
-        <button class="btn btn-primary">
-          Démarrer maintenant
-          <span class="arrow">→</span>
-        </button>
-        <p class="no-card">Aucune carte de crédit requise</p>
+
+        <div class="cta-wrapper">
+          <button class="btn-primary">
+            Démarrer maintenant
+            <ArrowRight :size="20" />
+          </button>
+          <p class="no-card">✨ Aucune carte de crédit requise</p>
+        </div>
       </div>
 
+      <!-- ILLUSTRATION -->
       <div class="illustration">
         <div class="orbit-container">
-          <!-- Centre avec logo/icône -->
+          <!-- Centre -->
           <div class="center-logo">
             <div class="logo-circle">
-              ⚡
+              <Sparkles :size="40" color="white" />
             </div>
+            <div class="pulse-aura"></div>
           </div>
 
-          <!-- Réseaux sociaux en orbite -->
-          <div 
-            v-for="(network, i) in networks" 
+          <!-- Réseaux -->
+          <div
+            v-for="(network, i) in networks"
             :key="i"
             class="network-orbit"
-            :style="{ 
-              '--rotation': (360 / networks.length) * i + 'deg',
-              '--delay': i * 0.15 + 's'
-            }"
+            :style="{ '--rotation': `${(360 / networks.length) * i}deg` }"
           >
             <div class="network-circle" :style="{ background: network.color }">
-              <span class="network-icon">{{ network.icon }}</span>
+              <component :is="network.icon" :size="24" color="white" />
             </div>
           </div>
 
-          <!-- Cercles décoratifs -->
+          <!-- Rings -->
           <div class="orbit-ring ring-1"></div>
           <div class="orbit-ring ring-2"></div>
           <div class="orbit-ring ring-3"></div>
@@ -61,225 +70,226 @@ const networks = [
 </template>
 
 <style scoped>
+/* ===============================
+   LAYOUT GLOBAL (IDENTIQUE HEADER)
+================================= */
+.layout-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ===============================
+   SECTION
+================================= */
 .networks-section {
-  padding: 8rem 2rem;
-  background: linear-gradient(180deg, white 0%, #F5F5F5 100%);
-  position: relative;
+  padding: 140px 0 100px; /* top > header fixed */
+  background: #ffffff;
   overflow: hidden;
 }
 
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
+/* ===============================
+   GRID
+================================= */
+.networks-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6rem;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 4rem;
   align-items: center;
+}
+
+/* ===============================
+   TEXTE
+================================= */
+.badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: #f1f5f9;
+  color: #6f2dbd;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 1.5rem;
 }
 
 .content h2 {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1.1;
   margin-bottom: 2rem;
-  color: #3d3f8f;
+  color: #0f172a;
+  letter-spacing: -1px;
 }
 
 .highlight {
-  background: linear-gradient(135deg, #ff4785, #3d3f8f);
+  background: linear-gradient(135deg, #6f2dbd, #e91e8c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .content p {
-  font-size: 1.15rem;
-  color: #4A4A4A;
+  font-size: 1.2rem;
+  color: #64748b;
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  max-width: 520px;
+}
+
+/* ===============================
+   CTA
+================================= */
+.btn-primary {
+  background: #0f172a;
+  color: white;
+  padding: 1.2rem 2.5rem;
+  border-radius: 16px;
+  border: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  background: #6f2dbd;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(111, 45, 189, 0.25);
 }
 
 .no-card {
-  font-size: 0.9rem;
-  color: #8E8E8E;
   margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #94a3b8;
 }
 
+/* ===============================
+   ILLUSTRATION
+================================= */
 .illustration {
-  position: relative;
-  height: 600px;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
 .orbit-container {
   position: relative;
-  width: 500px;
-  height: 500px;
-  animation: rotate-slow 60s linear infinite;
+  width: 400px;
+  height: 400px;
+  animation: rotateMain 22s linear infinite;
 }
 
-/* Centre avec logo */
 .center-logo {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logo-circle {
   width: 100px;
   height: 100px;
-  background: linear-gradient(135deg, #3d3f8f, #ff4785);
-  border-radius: 50%;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #6f2dbd, #e91e8c);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
-  color: white;
-  box-shadow: 0 20px 60px rgba(61, 63, 143, 0.3);
-  animation: pulse-center 3s ease-in-out infinite;
+  box-shadow: 0 20px 50px rgba(111, 45, 189, 0.35);
+  z-index: 2;
 }
 
-/* Orbites des réseaux sociaux */
+.pulse-aura {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(111,45,189,0.15), transparent 70%);
+  animation: pulse 3s infinite;
+}
+
+/* ORBITES */
 .network-orbit {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  transform: translate(-50%, -50%) rotate(var(--rotation));
-  animation: counter-rotate 60s linear infinite reverse;
-  animation-delay: var(--delay);
+  inset: 0;
+  transform: rotate(var(--rotation));
 }
 
 .network-circle {
   position: absolute;
-  top: -40px;
+  top: -28px;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  animation: float-subtle 3s ease-in-out infinite;
-  animation-delay: var(--delay);
+  animation: counterRotate 22s linear infinite reverse;
 }
 
-.network-circle:hover {
-  transform: translateX(-50%) scale(1.15);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
-}
-
-.network-icon {
-  font-size: 2rem;
-  color: white;
-  font-weight: bold;
-}
-
-/* Anneaux décoratifs */
+/* RINGS */
 .orbit-ring {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 50%;
   transform: translate(-50%, -50%);
-  border: 2px solid rgba(61, 63, 143, 0.1);
   border-radius: 50%;
-  pointer-events: none;
+  border: 1.5px solid #f1f5f9;
 }
 
-.ring-1 {
-  width: 250px;
-  height: 250px;
-  animation: pulse-ring 4s ease-in-out infinite;
-}
+.ring-1 { width: 180px; height: 180px; }
+.ring-2 { width: 290px; height: 290px; }
+.ring-3 { width: 400px; height: 400px; border-style: dashed; }
 
-.ring-2 {
-  width: 350px;
-  height: 350px;
-  animation: pulse-ring 4s ease-in-out infinite;
-  animation-delay: 1s;
-}
-
-.ring-3 {
-  width: 450px;
-  height: 450px;
-  animation: pulse-ring 4s ease-in-out infinite;
-  animation-delay: 2s;
-}
-
-/* Animations */
-@keyframes rotate-slow {
-  from { transform: rotate(0deg); }
+/* ANIMATIONS */
+@keyframes rotateMain {
   to { transform: rotate(360deg); }
 }
 
-@keyframes counter-rotate {
-  from { transform: translate(-50%, -50%) rotate(var(--rotation)); }
-  to { transform: translate(-50%, -50%) rotate(calc(var(--rotation) - 360deg)); }
+@keyframes counterRotate {
+  to { transform: translateX(-50%) rotate(360deg); }
 }
 
-@keyframes pulse-center {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+@keyframes pulse {
+  50% { transform: scale(1.2); opacity: 1; }
 }
 
-@keyframes float-subtle {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-10px); }
-}
-
-@keyframes pulse-ring {
-  0%, 100% { 
-    opacity: 0.1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% { 
-    opacity: 0.3;
-    transform: translate(-50%, -50%) scale(1.05);
-  }
-}
-
+/* ===============================
+   RESPONSIVE
+================================= */
 @media (max-width: 1024px) {
-  .container {
+  .networks-container {
     grid-template-columns: 1fr;
     text-align: center;
+    gap: 5rem;
   }
-  
-  .content h2 {
-    font-size: 2rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-  
-  .illustration {
-    height: 500px;
-    margin-top: 3rem;
+}
+
+@media (max-width: 640px) {
+  .networks-section {
+    padding: 120px 0 60px;
   }
 
   .orbit-container {
-    width: 400px;
-    height: 400px;
+    width: 320px;
+    height: 320px;
   }
+
+  .ring-3 { width: 320px; height: 320px; }
+  .ring-2 { width: 220px; height: 220px; }
+  .ring-1 { width: 130px; height: 130px; }
 
   .network-circle {
-    width: 60px;
-    height: 60px;
-  }
-
-  .network-icon {
-    font-size: 1.5rem;
-  }
-
-  .logo-circle {
-    width: 80px;
-    height: 80px;
-    font-size: 2.5rem;
+    width: 50px;
+    height: 50px;
+    top: -20px;
   }
 }
 </style>
