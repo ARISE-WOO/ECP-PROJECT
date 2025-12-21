@@ -1,11 +1,10 @@
 <script setup>
-import { Sparkles, ArrowRight } from 'lucide-vue-next'
+import { Sparkles, ArrowRight, Rocket } from 'lucide-vue-next' // Ajout de l'icône Rocket
 
 // URL du bot Telegram
 const botUrl = 'https://t.me/ECP_2025_Sarika_Bot'
 
 const startConfiguration = () => {
-  // Rediriger directement vers le bot Telegram
   window.location.href = botUrl
 }
 </script>
@@ -14,17 +13,21 @@ const startConfiguration = () => {
   <section class="cta-section">
     <div class="cta-container">
       <div class="glow-overlay"></div>
-      <h2>Prêt à automatiser votre Community Management ?</h2>
+      
+      <h2>Prêt à donner des super-pouvoirs à vos réseaux ?</h2>
+      
       <p>
-        Commencez gratuitement et transformez votre présence sur les réseaux sociaux
+        Rejoignez l'aventure et laissez notre assistant dompter vos algorithmes pendant que vous prenez votre café.
       </p>
+
       <button class="btn-cta-primary" @click="startConfiguration">
-        Configurer mon Assistant Maintenant
-        <ArrowRight :size="20" class="arrow-icon" />
+        Lancer la magie sur Telegram
+        <Rocket :size="20" class="arrow-icon" />
       </button>
+
       <div class="no-card-info">
         <Sparkles :size="16" />
-        Version d'essai immédiate, aucune carte requise.
+        Configuration éclair en 2 minutes • 100% Gratuit
       </div>
     </div>
   </section>
@@ -103,7 +106,7 @@ const startConfiguration = () => {
 }
 
 .btn-cta-primary:hover .arrow-icon {
-  transform: translateX(5px);
+  transform: scale(1.2) rotate(-10deg);
 }
 
 .no-card-info {

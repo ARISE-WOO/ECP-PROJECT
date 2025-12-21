@@ -11,7 +11,7 @@ const platform = ref('')
 
 onMounted(async () => {
   try {
-    // 1. Récupérer l'ID Telegram (soit via l'URL du bot, soit via le stockage local)
+    // 1. Récupérer l'ID Telegram 
     const telegramId = route.query.tid || localStorage.getItem('telegram_id')
     const networkParam = route.query.network 
     
@@ -19,13 +19,12 @@ onMounted(async () => {
       throw new Error('Identifiant Telegram introuvable. Veuillez recommencer depuis le bot.')
     }
 
-    // 2. Récupérer la session OAuth fraîchement créée par Supabase
+    // 2. Récupérer la session OAuth 
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
     if (sessionError) throw sessionError
     if (!session) throw new Error('Session OAuth introuvable. Veuillez vous reconnecter.')
 
-    // Le provider est soit passé en URL, soit détecté via Supabase (linkedin, facebook, etc.)
     platform.value = networkParam || session.provider || 'réseau social'
 
     // 3. Récupérer l'utilisateur local lié au telegram_id
@@ -46,13 +45,12 @@ onMounted(async () => {
     
     if (companyError || !company) throw new Error('Profil entreprise non trouvé. Répondez d\'abord aux questions du bot.')
 
-    // 5. Sauvegarder les tokens du réseau social (LinkedIn/FB) dans oauth_tokens
-    // ATTENTION : On utilise provider_token et non access_token
+    // 5. Sauvegarder les tokens du réseau social dans oauth_tokens
     const tokenData = {
       user_id: user.id,
       company_id: company.id,
       platform: platform.value,
-      access_token: session.provider_token, // Le token pour poster sur le réseau
+      access_token: session.provider_token, 
       refresh_token: session.provider_refresh_token || null,
       expires_at: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
       platform_user_id: session.user.id
@@ -191,37 +189,3 @@ p { color: #64748b; font-size: 1.1rem; margin-bottom: 0.5rem; }
   color: #475569;
 }
 </style>
-```
-
----
-
-## 📋 **Résumé du flux complet**
-```
-1. Site (/) 
-   → Clic "Démarrer" 
-   → Modal s'ouvre
-
-2. Modal 
-   → Clic "Se connecter avec Telegram" 
-   → Redirection /auth/telegram
-
-3. Page Telegram Auth (/auth/telegram)
-   → Widget Telegram
-   → User autorise
-   → Profil créé dans Supabase (table users)
-   → Redirection vers bot Telegram
-
-4. Bot Telegram (géré par votre coéquipier)
-   → Pose 6 questions
-   → Sauvegarde dans Supabase (table companies)
-   → Envoie lien OAuth: https://site.com/auth/callback?network=linkedin&tid=123456
-
-5. Page OAuth Callback (/auth/callback)
-   → Récupère session OAuth
-   → Sauvegarde tokens dans Supabase (table oauth_tokens)
-   → Update oauth_completed = true
-   → Redirection vers bot: https://t.me/bot?start=oauth_success_linkedin
-
-6. Bot Telegram
-   → Détecte oauth_success
-   → Message: "✅ Merci ! Votre assistant est prêt"

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { supabase } from '@/lib/supabase' // ✅ Correction ici
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from './auth'
 
 export const useCompanyStore = defineStore('company', () => {

@@ -1,16 +1,35 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-// Import des icônes professionnelles pour le style SaaS
-import { Sparkles, CalendarDays, MessageCircleCode, ShieldCheck } from 'lucide-vue-next'
+import { Sparkles, CalendarDays, MessageCircleCode, ShieldCheck, Rocket } from 'lucide-vue-next'
 
 const activeFeature = ref(0)
-let timer = null // Référence pour gérer le timer proprement
+let timer = null
 
 const features = [
-  { icon: Sparkles, title: 'Génération de Contenu IA', description: 'Créez du contenu engageant adapté à votre marque grâce à Mistral AI hébergé localement.', color: '#6F2DBD' },
-  { icon: CalendarDays, title: 'Publication Automatisée', description: 'Planifiez et publiez sur LinkedIn, Facebook et plus encore avec validation humaine.', color: '#E91E8C' },
-  { icon: MessageCircleCode, title: 'Monitoring Intelligent', description: 'Suivez et répondez automatiquement aux interactions sur vos réseaux sociaux.', color: '#3d3f8f' },
-  { icon: ShieldCheck, title: 'Souveraineté des Données', description: '100% local, sans dépendance cloud. Vos données restent sous votre contrôle.', color: '#10b981' }
+  { 
+    icon: Sparkles, 
+    title: 'IA Créative & Inspirée', 
+    description: 'Dites adieu au syndrome de la page blanche. Notre IA génère des posts percutants qui capturent l’essence de votre marque en un clin d’œil.', 
+    color: '#6F2DBD' 
+  },
+  { 
+    icon: CalendarDays, 
+    title: 'Le Pilote Automatique', 
+    description: 'Programmez vos contenus sur LinkedIn et Facebook en toute sérénité. Vous gardez le contrôle final, l’assistant s’occupe de la ponctualité.', 
+    color: '#E91E8C' 
+  },
+  { 
+    icon: MessageCircleCode, 
+    title: 'Écoute Active 24h/7', 
+    description: 'Ne manquez plus jamais une interaction. L’assistant veille sur vos commentaires et engage votre communauté pour booster l’algorithme.', 
+    color: '#3d3f8f' 
+  },
+  { 
+    icon: ShieldCheck, 
+    title: 'Forteresse de Données', 
+    description: 'Votre stratégie est un secret bien gardé. Hébergé localement, l’assistant garantit que vos données ne sortent jamais de chez vous.', 
+    color: '#10b981' 
+  }
 ]
 
 const startTimer = () => {
@@ -27,8 +46,8 @@ onUnmounted(() => {
 
 const setActive = (index) => {
   activeFeature.value = index
-  clearInterval(timer) // Stop le timer quand l'utilisateur interagit
-  startTimer() // Redémarre le timer
+  clearInterval(timer)
+  startTimer()
 }
 </script>
 
@@ -36,10 +55,10 @@ const setActive = (index) => {
   <section id="features" class="features-section">
     <div class="container">
       <h2 class="section-title">
-        Une Solution <span class="text-gradient">Tout-en-Un</span>
+        Votre temps est <span class="text-gradient">précieux</span>
       </h2>
       <p class="section-subtitle">
-        Orchestrez votre stratégie social media avec une IA générative souveraine
+        L'assistant intelligent qui travaille quand vous dormez, la sécurité en plus.
       </p>
       
       <div class="features-grid">
@@ -58,7 +77,6 @@ const setActive = (index) => {
             <h3 class="feature-title">{{ feature.title }}</h3>
             <p>{{ feature.description }}</p>
           </div>
-          <!-- Effet de survol visuellement propre -->
           <div class="hover-bg"></div>
         </div>
       </div>
@@ -68,8 +86,8 @@ const setActive = (index) => {
 
 <style scoped>
 .features-section {
-  padding: 100px 2rem; /* Espacement unifié comme dans App.vue */
-  background: #f9fafb; /* Fond très léger */
+  padding: 100px 2rem;
+  background: #f9fafb;
 }
 
 .container { max-width: 1280px; margin: auto; }
@@ -91,10 +109,10 @@ const setActive = (index) => {
 
 .section-subtitle {
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   color: #64748b;
   max-width: 700px;
-  margin: 0 auto 4rem; /* Plus d'espace avant les cartes */
+  margin: 0 auto 4rem;
 }
 
 .features-grid {
@@ -105,7 +123,7 @@ const setActive = (index) => {
 
 .feature-card {
   padding: 2.5rem;
-  border-radius: 20px;
+  border-radius: 24px;
   background: white;
   border: 1px solid #e2e8f0;
   cursor: pointer;
@@ -117,10 +135,9 @@ const setActive = (index) => {
 .feature-card:hover, .feature-card.active {
   transform: translateY(-8px);
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
-  border-color: var(--accent-color); /* Bordure colorée active */
+  border-color: var(--accent-color);
 }
 
-/* Effet de fond coloré au survol/actif */
 .hover-bg {
   position: absolute;
   inset: 0;
@@ -134,7 +151,6 @@ const setActive = (index) => {
   opacity: 0.05;
 }
 
-/* Contenu et Icones */
 .feature-content {
   position: relative;
   z-index: 1;
@@ -144,7 +160,7 @@ const setActive = (index) => {
   width: 60px;
   height: 60px;
   background: #f8fafc;
-  border-radius: 12px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,12 +179,12 @@ const setActive = (index) => {
 .feature-card p {
   color: #64748b;
   line-height: 1.6;
+  font-size: 1.05rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .section-subtitle {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   .feature-card {
     padding: 2rem;

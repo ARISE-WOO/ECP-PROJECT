@@ -1,14 +1,13 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { Sparkles, MessageCircle, CheckCircle, ArrowRight } from 'lucide-vue-next'
 
 const emit = defineEmits(['close'])
-const router = useRouter()
+
+// URL du bot Telegram
+const botUrl = 'https://t.me/ECP_2025_Sarika_Bot'
 
 const startWithTelegram = () => {
-  router.push({ name: 'telegram-auth' })
-  emit('close')
+  window.location.href = botUrl
 }
 </script>
 
