@@ -1,7 +1,13 @@
 <script setup>
 import { Sparkles, ArrowRight } from 'lucide-vue-next'
 
-const emit = defineEmits(['open-modal'])
+// URL du bot Telegram
+const botUrl = 'https://t.me/ECP_2025_Sarika_Bot'
+
+const startConfiguration = () => {
+  // Rediriger directement vers le bot Telegram
+  window.location.href = botUrl
+}
 </script>
 
 <template>
@@ -12,7 +18,7 @@ const emit = defineEmits(['open-modal'])
       <p>
         Commencez gratuitement et transformez votre présence sur les réseaux sociaux
       </p>
-      <button class="btn-cta-primary" @click="emit('open-modal')">
+      <button class="btn-cta-primary" @click="startConfiguration">
         Configurer mon Assistant Maintenant
         <ArrowRight :size="20" class="arrow-icon" />
       </button>
@@ -27,14 +33,13 @@ const emit = defineEmits(['open-modal'])
 <style scoped>
 .cta-section {
   padding: 8rem 2rem;
-  background: linear-gradient(135deg, #6f2dbd, #e91e8c); /* Fond dégradé vif */
+  background: linear-gradient(135deg, #6f2dbd, #e91e8c);
   color: white;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-/* Effet de lueur subtil au centre */
 .glow-overlay {
   position: absolute;
   top: 50%;
@@ -50,31 +55,30 @@ const emit = defineEmits(['open-modal'])
 .cta-container {
   max-width: 800px;
   margin: auto;
-  position: relative; /* Assure que le contenu est au-dessus du glow-overlay */
+  position: relative;
   z-index: 1;
 }
 
 .cta-section h2 {
-  font-size: clamp(2.5rem, 5vw, 3.5rem); /* Taille adaptative */
-  font-weight: 900; /* Plus impactant */
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 900;
   margin-bottom: 1.5rem;
   line-height: 1.1;
-  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Ombre douce sur le texte */
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .cta-section p {
   font-size: 1.25rem;
-  margin-bottom: 2.5rem; /* Plus d'espace avant le bouton */
+  margin-bottom: 2.5rem;
   opacity: 0.95;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Bouton professionnel et animé */
 .btn-cta-primary {
   background: white;
-  color: #6f2dbd; /* Couleur de la marque */
+  color: #6f2dbd;
   padding: 1.1rem 2.5rem;
   border-radius: 12px;
   border: none;
@@ -91,7 +95,7 @@ const emit = defineEmits(['open-modal'])
 .btn-cta-primary:hover {
   transform: translateY(-5px);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-  color: #e91e8c; /* Change de couleur au survol */
+  color: #e91e8c;
 }
 
 .arrow-icon {
@@ -99,7 +103,7 @@ const emit = defineEmits(['open-modal'])
 }
 
 .btn-cta-primary:hover .arrow-icon {
-  transform: translateX(5px); /* Animation de la flèche */
+  transform: translateX(5px);
 }
 
 .no-card-info {

@@ -1,196 +1,260 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { supabase } from '../supabase' // Vérifiez que ce fichier existe
-import { 
-  Building2, Globe, MapPin, Clock, Users, MessageSquare, 
-  Linkedin, Facebook, Instagram, ChevronRight, ChevronLeft, CheckCircle2 
-} from 'lucide-vue-next'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Sparkles, MessageCircle, CheckCircle, ArrowRight } from 'lucide-vue-next'
 
 const emit = defineEmits(['close'])
-const currentStep = ref(0)
-const showErrors = ref(false)
-const telegramId = ref(null)
+const router = useRouter()
 
-onMounted(() => {
-  // Récupération du Telegram ID dans l'URL
-  const params = new URLSearchParams(window.location.search)
-  telegramId.value = params.get('tid')
-})
-
-const formData = reactive({
-  companyName: '',
-  sector: '',
-  location: '',
-  openingHours: '',
-  targetAudience: '',
-  tone: 'Professionnel',
-  networks: []
-})
-
-const formSteps = [
-  {
-    title: 'Identité de marque',
-    subtitle: 'Présentez votre entreprise pour une IA personnalisée.',
-    fields: [
-      { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', icon: Building2, placeholder: 'Ex: ECP Studio' },
-      { name: 'sector', label: 'Secteur d\'activité', type: 'text', icon: Globe, placeholder: 'Ex: Immobilier, Tech...' }
-    ]
-  },
-  {
-    title: 'Présence Locale',
-    subtitle: 'Optimisez vos publications selon votre zone.',
-    fields: [
-      { name: 'location', label: 'Localisation', type: 'text', icon: MapPin, placeholder: 'Ex: Paris, France' },
-      { name: 'openingHours', label: 'Horaires', type: 'text', icon: Clock, placeholder: 'Ex: Lun-Ven 9h-18h' }
-    ]
-  },
-  {
-    title: 'Stratégie Editoriale',
-    subtitle: 'Définissez comment votre assistant doit s\'exprimer.',
-    fields: [
-      { name: 'targetAudience', label: 'Public cible', type: 'text', icon: Users, placeholder: 'Ex: Jeunes entrepreneurs' },
-      { name: 'tone', label: 'Tonalité', type: 'select', icon: MessageSquare, options: ['Professionnel', 'Décontracté', 'Créatif', 'Informatif'] }
-    ]
-  },
-  {
-    title: 'Canaux de diffusion',
-    subtitle: 'Où souhaitez-vous que l\'IA publie ?',
-    isNetworks: true
-  }
-]
-
-const socialNetworks = [
-  { name: 'LinkedIn', icon: Linkedin, color: '#0077b5', provider: 'linkedin_oidc' },
-  { name: 'Facebook', icon: Facebook, color: '#1877f2', provider: 'facebook' },
-  { name: 'Instagram', icon: Instagram, color: '#e4405f', provider: 'instagram' },
-]
-
-const isStepValid = computed(() => {
-  const step = formSteps[currentStep.value]
-  if (step.isNetworks) return formData.networks.length > 0
-  return step.fields.every(field => formData[field.name]?.toString().trim() !== '')
-})
-
-// Déclenche l'authentification OAuth Supabase
-const connectSocial = async (network) => {
-  // Sauvegarde temporaire des infos du formulaire
-  localStorage.setItem('tg_id', telegramId.value)
-  localStorage.setItem('onboarding_data', JSON.stringify(formData))
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: network.provider,
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-      queryParams: { access_type: 'offline', prompt: 'consent' }
-    }
-  })
-  if (error) alert("Erreur de connexion : " + error.message)
-}
-
-const nextStep = () => {
-  if (isStepValid.value) {
-    showErrors.value = false
-    currentStep.value < formSteps.length - 1 ? currentStep.value++ : completeSetup()
-  } else {
-    showErrors.value = true
-  }
-}
-
-const previousStep = () => {
-  showErrors.value = false
-  currentStep.value > 0 ? currentStep.value-- : emit('close')
-}
-
-const completeSetup = () => {
-  console.log('Finalisation...', formData)
+const startWithTelegram = () => {
+  router.push({ name: 'telegram-auth' })
   emit('close')
 }
 </script>
 
 <template>
   <div class="modal-overlay" @click.self="emit('close')">
-    <div class="hero-modal">
-      <div class="modal-sidebar">
-        <div class="step-indicator">
-          <div v-for="(step, i) in formSteps" :key="i" 
-               class="step-dot" :class="{ active: i <= currentStep }">
+    <div class="modal">
+      <button class="close-btn" @click="emit('close')">×</button>
+      
+      <div class="modal-content">
+        <div class="logo">
+          <Sparkles :size="60" color="#6F2DBD" />
+        </div>
+        
+        <h2>Connectez vos réseaux sociaux</h2>
+        <p class="subtitle">
+          Notre bot gérera automatiquement vos publications sur LinkedIn, Facebook et Instagram
+        </p>
+        
+        <div class="cta-buttons">
+          <button class="btn-telegram" @click="startWithTelegram">
+            <MessageCircle :size="20" />
+            Se connecter avec Telegram
+          </button>
+          
+          <!-- Optionnel : Connexion compte existant -->
+          <button class="btn-secondary" disabled>
+            <CheckCircle :size="20" />
+            Se connecter avec un compte existant
+            <span class="badge">Bientôt</span>
+          </button>
+        </div>
+        
+        <div class="flow-preview">
+          <h3>Comment ça marche ?</h3>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <span class="flow-number">1</span>
+              <span>Connectez Telegram</span>
+            </div>
+            <ArrowRight :size="16" class="flow-arrow" />
+            <div class="flow-step">
+              <span class="flow-number">2</span>
+              <span>Remplissez vos infos</span>
+            </div>
+            <ArrowRight :size="16" class="flow-arrow" />
+            <div class="flow-step">
+              <span class="flow-number">3</span>
+              <span>Autorisez OAuth</span>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="modal-content">
-        <header class="content-header">
-          <div class="header-text">
-            <h2>{{ formSteps[currentStep].title }}</h2>
-            <p>{{ formSteps[currentStep].subtitle }}</p>
-          </div>
-          <button class="close-btn" @click="emit('close')">×</button>
-        </header>
-
-        <main class="content-body">
-          <!-- Correction ici : Le bloc v-if et v-else sont bien adjacents -->
-          <div v-if="!formSteps[currentStep].isNetworks" class="form-grid">
-            <div v-for="field in formSteps[currentStep].fields" :key="field.name" class="input-wrapper">
-              <label :class="{ 'label-error': showErrors && !formData[field.name] }">
-                <component :is="field.icon" :size="16" /> {{ field.label }}
-              </label>
-              <select v-if="field.type === 'select'" v-model="formData[field.name]" class="hero-input">
-                <option v-for="opt in field.options" :key="opt">{{ opt }}</option>
-              </select>
-              <input v-else v-model="formData[field.name]" :type="field.type" 
-                     :placeholder="field.placeholder" 
-                     class="hero-input"
-                     :class="{ 'input-invalid': showErrors && !formData[field.name] }">
-            </div>
-          </div>
-
-          <div v-else class="networks-selection">
-            <div v-for="net in socialNetworks" :key="net.name" 
-                 class="net-card" 
-                 @click="connectSocial(net)">
-              <div class="net-icon-box" :style="{ backgroundColor: net.color + '15', color: net.color }">
-                <component :is="net.icon" :size="24" />
-              </div>
-              <div class="net-info">
-                <span class="net-name">{{ net.name }}</span>
-                <span class="net-status">Cliquer pour connecter</span>
-              </div>
-              <CheckCircle2 v-if="formData.networks.includes(net.name)" class="check-icon" :size="20" />
-            </div>
-          </div>
-        </main>
-
-        <footer class="content-footer">
-          <button class="btn-back" @click="previousStep">
-            <ChevronLeft :size="18" /> {{ currentStep === 0 ? 'Annuler' : 'Retour' }}
-          </button>
-          <button class="btn-next" :class="{ 'btn-disabled': !isStepValid }" @click="nextStep">
-            {{ currentStep === formSteps.length - 1 ? 'Terminer' : 'Continuer' }} <ChevronRight :size="18" />
-          </button>
-        </footer>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Conservez votre style précédent ici */
-.net-info { display: flex; flex-direction: column; }
-.net-status { font-size: 11px; color: #64748b; }
-.net-name { font-weight: 600; color: #1e293b; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.hero-modal { display: flex; background: white; width: 900px; max-width: 95vw; height: 580px; border-radius: 24px; overflow: hidden; }
-.modal-sidebar { width: 80px; background: #0f172a; display: flex; flex-direction: column; align-items: center; padding-top: 40px; }
-.step-dot { width: 4px; height: 40px; background: #334155; margin-bottom: 8px; border-radius: 2px; }
-.step-dot.active { background: #E91E8C; }
-.modal-content { flex: 1; display: flex; flex-direction: column; padding: 40px; }
-.content-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-.hero-input { width: 100%; padding: 14px 16px; border: 2px solid #f1f5f9; border-radius: 12px; margin-bottom: 10px; }
-.networks-selection { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.net-card { display: flex; align-items: center; padding: 20px; border: 2px solid #f1f5f9; border-radius: 16px; cursor: pointer; transition: 0.2s; }
-.net-card:hover { border-color: #E91E8C; background: #fff1f7; }
-.net-icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
-.content-footer { margin-top: auto; display: flex; justify-content: space-between; padding-top: 20px; }
-.btn-next { background: #E91E8C; color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-.btn-back { background: none; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: white;
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #f1f5f9;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: #e2e8f0;
+  transform: rotate(90deg);
+}
+
+.modal-content {
+  padding: 3rem 2.5rem;
+  text-align: center;
+}
+
+.logo {
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+}
+
+.subtitle {
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.cta-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.btn-telegram {
+  width: 100%;
+  background: linear-gradient(135deg, #6F2DBD, #E91E8C);
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s;
+}
+
+.btn-telegram:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(111, 45, 189, 0.3);
+}
+
+.btn-secondary {
+  width: 100%;
+  background: white;
+  color: #64748b;
+  padding: 1rem 2rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #f59e0b;
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.flow-preview {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.flow-preview h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.flow-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  flex: 1;
+}
+
+.flow-number {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #6F2DBD, #E91E8C);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.flow-arrow {
+  color: #cbd5e1;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .flow-steps {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .flow-arrow {
+    transform: rotate(90deg);
+  }
+}
 </style>
